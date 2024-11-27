@@ -45,7 +45,7 @@ async def seal(update: Update, context: CallbackContext):
 
 async def seallist(update: Update, context: ContextTypes.DEFAULT_TYPE):
     fileslist = "\n"
-    for n in range(len(availablepics) - 1):
+    for n in range(len(availablepics)):
         fileslist += availablepics[n] + "\n" 
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Available pictures:"+ fileslist
                                    , reply_to_message_id=update.message.message_id)
