@@ -1,0 +1,13 @@
+services:
+  sealbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sealbot
+    restart: unless-stopped
+    environment:
+      - SEALBOT_SECRET=
+      - SEALBOT_UPDATE_CHATID=
+    volumes:
+      - ./pictures:/app/pictures
+      - ./ota:/app/ota
