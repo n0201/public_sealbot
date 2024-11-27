@@ -20,6 +20,8 @@ images = Path(picturespath).glob("*.jpg")
 availablepics = [p.name for p in images]
 availablepics.sort()
 
+sealbot_admins = os.environ["SEALBOT_ADMINS"].split(",")
+
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -82,6 +84,25 @@ async def send_update_message(context: CallbackContext):
             first_time = True
         await asyncio.sleep(45)
 
+async def add(update: Update, context: CallbackContext):
+    user_id = update.message.from_user.id
+    
+    if update.message.reply_to_message.photo and str(user_id) in sealbot_admins:
+        print("valid")
+        photo_message = update.message.reply_to_message
+        file_id = photo_message.photo[-1].file_id
+        new_file = await context.bot.get_file(file_id)
+        
+        await new_file.download_to_drive(os.path.join(picturespath, f'{file_id}.jpg'))
+
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Your picture has been saved as {file_id}.jpg'
+                                        , reply_to_message_id=update.message.message_id)
+        
+        #reload available pictures
+        images = Path(picturespath).glob("*.jpg")
+        availablepics = [p.name for p in images]
+        availablepics.sort()
+
 if __name__ == '__main__':
     application = ApplicationBuilder().token(my_secret).build()
 
@@ -90,6 +111,9 @@ if __name__ == '__main__':
 
     list_handler = CommandHandler("seallist", seallist)
     application.add_handler(list_handler)
+
+    add_handler = CommandHandler("add", add)
+    application.add_handler(add_handler)
 
     # Start the send_update_message function in a new thread
     threading.Thread(target=asyncio.run, args=(send_update_message(application),)).start()

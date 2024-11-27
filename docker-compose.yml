@@ -8,6 +8,7 @@ services:
     environment:
       - SEALBOT_SECRET=
       - SEALBOT_UPDATE_CHATID=
+      - USER_ID=
     volumes:
       - ./pictures:/app/pictures
       - ./ota:/app/ota
