@@ -11,12 +11,9 @@ import asyncio
 import json
 from pathlib import Path
 
-# ADD A CHAT ID TO LINE 82 OR COMMENT OUT LINE 102!!!
-
 my_secret = os.environ['SEALBOT_SECRET']
 
-picturespath = sys.path[0]
-
+picturespath = sys.path[0]+"/pictures"
 
 # get all available pics in this directory
 images = Path(picturespath).glob("*.jpg")
@@ -33,7 +30,7 @@ async def seal(update: Update, context: CallbackContext):
     try:
         if context.args[0] in availablepics:
             await context.bot.send_photo(chat_id=update.effective_chat.id,
-                                         photo=open(os.path.join(picturespath, context.args[0]), "rb"),
+                                        photo=open(os.path.join(picturespath, context.args[0]), "rb"),
                                          reply_to_message_id=update.message.message_id)
         else:
             await context.bot.send_photo(chat_id=update.effective_chat.id,
@@ -53,7 +50,7 @@ async def seallist(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def send_update_message(context: CallbackContext):
-    file_path = os.path.expanduser("~/seal_telegram_bot/sealbot/ota/dreamlte.json")
+    file_path = sys.path[0]+"/ota/dreamlte.json"
     if os.path.exists(file_path):
         with open(file_path) as f:
             data = json.load(f)
