@@ -88,20 +88,23 @@ async def add(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     
     if update.message.reply_to_message.photo and str(user_id) in sealbot_admins:
-        print("valid")
-        photo_message = update.message.reply_to_message
-        file_id = photo_message.photo[-1].file_id
-        new_file = await context.bot.get_file(file_id)
-        
-        await new_file.download_to_drive(os.path.join(picturespath, f'{file_id}.jpg'))
+        try:
+            photo_message = update.message.reply_to_message
+            file_id = photo_message.photo[-1].file_id
+            new_file = await context.bot.get_file(file_id)
 
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Your picture has been saved as {file_id}.jpg'
-                                        , reply_to_message_id=update.message.message_id)
+            await new_file.download_to_drive(os.path.join(picturespath, f'{context.args[0]}.jpg'))
+
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Your picture has been saved as {context.args[0]}.jpg'
+                                            , reply_to_message_id=update.message.message_id)
         
-        #reload available pictures
-        images = Path(picturespath).glob("*.jpg")
-        availablepics = [p.name for p in images]
-        availablepics.sort()
+            #reload available pictures
+            images = Path(picturespath).glob("*.jpg")
+            availablepics = [p.name for p in images]
+            availablepics.sort()
+        except:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: /add filename (without .jpg) "
+                                            , reply_to_message_id=update.message.message_id)
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token(my_secret).build()
