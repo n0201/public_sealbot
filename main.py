@@ -31,9 +31,6 @@ logging.basicConfig(
 
 async def seal(update: Update, context: CallbackContext):
     try:
-        print(context.args[0])
-        print(availablepics)
-        print(os.path.join(picturespath, context.args[0]))
         if context.args[0] in availablepics:
             await context.bot.send_photo(chat_id=update.effective_chat.id,
                                          photo=open(os.path.join(picturespath, context.args[0]), "rb"),
@@ -50,7 +47,6 @@ async def seal(update: Update, context: CallbackContext):
 async def seallist(update: Update, context: ContextTypes.DEFAULT_TYPE):
     fileslist = "\n"
     for n in range(len(availablepics) - 1):
-        print(availablepics[n])
         fileslist += availablepics[n] + "\n" 
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Available pictures:"+ fileslist
                                    , reply_to_message_id=update.message.message_id)
