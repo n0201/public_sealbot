@@ -13,7 +13,7 @@ from pathlib import Path
 
 # ADD A CHAT ID TO LINE 82 OR COMMENT OUT LINE 102!!!
 
-my_secret = #place your token here
+my_secret = os.environ['SEALBOT_SECRET']
 
 picturespath = sys.path[0]
 
@@ -75,7 +75,7 @@ async def send_update_message(context: CallbackContext):
                 if update_date != update_date_cache:
                     while sending_error == False:
                         try:
-                            await context.bot.send_message(chat_id="", text="New update available!") # CHAT ID MISSING
+                            await context.bot.send_message(chat_id=os.environ['SEALBOT_UPDATE_CHATID'], text="New update available!") # CHAT ID MISSING
                             sending_error = True
                         except:
                             pass
