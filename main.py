@@ -86,11 +86,10 @@ async def send_update_message(context: CallbackContext):
 
 async def add(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
-    
-    if update.message.reply_to_message.photo and str(user_id) in sealbot_admins:
-        global images
-        global availablepics
-        try:
+    try:
+        if update.message.reply_to_message.photo and str(user_id) in sealbot_admins:
+            global images
+            global availablepics
             photo_message = update.message.reply_to_message
             file_id = photo_message.photo[-1].file_id
             new_file = await context.bot.get_file(file_id)
@@ -104,8 +103,26 @@ async def add(update: Update, context: CallbackContext):
             images = Path(picturespath).glob("*.jpg")
             availablepics = [p.name for p in images]
             availablepics.sort()
+    except:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: react to a picture with /add filename (without .jpg) "
+                                        , reply_to_message_id=update.message.message_id)
+
+async def remove(update: Update, context: CallbackContext):
+    user_id = update.message.from_user.id
+    if str(user_id) in sealbot_admins:
+        global images
+        global availablepics
+        try:
+            os.remove(os.path.join(picturespath, f'{context.args[0]}.jpg'))
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f'The picture {context.args[0]}.jpg has been removed'
+                                            , reply_to_message_id=update.message.message_id)
+            
+            #reload available pictures
+            images = Path(picturespath).glob("*.jpg")
+            availablepics = [p.name for p in images]
+            availablepics.sort()
         except:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: /add filename (without .jpg) "
+            await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: /remove filename (without .jpg) "
                                             , reply_to_message_id=update.message.message_id)
 
 if __name__ == '__main__':
@@ -119,6 +136,9 @@ if __name__ == '__main__':
 
     add_handler = CommandHandler("add", add)
     application.add_handler(add_handler)
+
+    remove_handler = CommandHandler("remove", remove)
+    application.add_handler(remove_handler)
 
     # Start the send_update_message function in a new thread
     threading.Thread(target=asyncio.run, args=(send_update_message(application),)).start()
