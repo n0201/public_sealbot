@@ -86,26 +86,27 @@ async def send_update_message(context: CallbackContext):
 
 async def add(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
-    try:
-        if update.message.reply_to_message.photo and str(user_id) in sealbot_admins:
-            global images
-            global availablepics
-            photo_message = update.message.reply_to_message
-            file_id = photo_message.photo[-1].file_id
-            new_file = await context.bot.get_file(file_id)
+    if str(user_id) in sealbot_admins:
+        try:
+            if update.message.reply_to_message.photo:
+                global images
+                global availablepics
+                photo_message = update.message.reply_to_message
+                file_id = photo_message.photo[-1].file_id
+                new_file = await context.bot.get_file(file_id)
 
-            await new_file.download_to_drive(os.path.join(picturespath, f'{context.args[0]}.jpg'))
+                await new_file.download_to_drive(os.path.join(picturespath, f'{context.args[0]}.jpg'))
 
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Your picture has been saved as {context.args[0]}.jpg'
-                                            , reply_to_message_id=update.message.message_id)
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Your picture has been saved as {context.args[0]}.jpg'
+                                                , reply_to_message_id=update.message.message_id)
         
-            #reload available pictures
-            images = Path(picturespath).glob("*.jpg")
-            availablepics = [p.name for p in images]
-            availablepics.sort()
-    except:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: react to a picture with /add filename (without .jpg) "
-                                        , reply_to_message_id=update.message.message_id)
+                #reload available pictures
+                images = Path(picturespath).glob("*.jpg")
+                availablepics = [p.name for p in images]
+                availablepics.sort()
+        except:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: react to a picture with /add filename (without .jpg) "
+                                            , reply_to_message_id=update.message.message_id)
 
 async def remove(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
