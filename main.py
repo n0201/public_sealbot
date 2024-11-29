@@ -88,6 +88,8 @@ async def add(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     
     if update.message.reply_to_message.photo and str(user_id) in sealbot_admins:
+        global images
+        global availablepics
         try:
             photo_message = update.message.reply_to_message
             file_id = photo_message.photo[-1].file_id
