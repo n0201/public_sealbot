@@ -30,3 +30,7 @@ iykyk
 # DISCLAIMER
 I'm not the one to blame for use of copyrighted pictures. The Person who hosts this bot is in charge of that!
 This Project uses the EUPL-1.2 license. Check the LICENSE file for more information
+
+## Credits
+- Special thanks to unsplash.com for providing free for commercial use seal pictures
+- python-telegram-bot library 
