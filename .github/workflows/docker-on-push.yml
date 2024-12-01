@@ -36,3 +36,8 @@ jobs:
             ${{ github.repository }}/:latest
             ${{ github.repository }}/:commit-${{ github.sha }}
 
+      - name: Send POST Request to deploy changes
+        run: |
+          curl -X POST ${{ secrets.DEPLOY_URL }}          
+
+
