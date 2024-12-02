@@ -1,8 +1,6 @@
 services:
   sealbot:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image:  ghcr.io/n0201/public_sealbot:main
     container_name: sealbot
     restart: unless-stopped
     environment:
