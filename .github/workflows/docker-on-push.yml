@@ -32,9 +32,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ github.repository }}:main
-            ${{ github.repository }}:latest
-            ${{ github.repository }}:commit-${{ github.sha }}
+            ghcr.io/${{ github.repository }}:main
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:commit-${{ github.sha }}
 
       - name: Send POST Request to deploy changes
         run: |
