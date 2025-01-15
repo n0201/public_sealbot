@@ -16,7 +16,7 @@ my_secret = os.environ['SEALBOT_SECRET']
 picturespath = sys.path[0]+"/pictures"
 
 # get all available pics in this directory
-images = Path(picturespath).glob("*.jpg")
+images = Path(picturespath).glob("*.jpg", "*.gif")
 availablepics = [p.name for p in images]
 availablepics.sort()
 
@@ -95,17 +95,17 @@ async def add(update: Update, context: CallbackContext):
                 file_id = photo_message.photo[-1].file_id
                 new_file = await context.bot.get_file(file_id)
 
-                await new_file.download_to_drive(os.path.join(picturespath, f'{context.args[0]}.jpg'))
+                await new_file.download_to_drive(os.path.join(picturespath, context.args[0]))
 
-                await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Your picture has been saved as {context.args[0]}.jpg'
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Your picture has been saved as {context.args[0]}'
                                                 , reply_to_message_id=update.message.message_id)
         
                 #reload available pictures
-                images = Path(picturespath).glob("*.jpg")
+                images = Path(picturespath).glob("*.jpg", "*.gif")
                 availablepics = [p.name for p in images]
                 availablepics.sort()
         except:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: react to a picture with /add filename (without .jpg) "
+            await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: react to a picture with /add filename (don't forget the file extension type!)"
                                             , reply_to_message_id=update.message.message_id)
 
 async def remove(update: Update, context: CallbackContext):
@@ -114,16 +114,16 @@ async def remove(update: Update, context: CallbackContext):
         global images
         global availablepics
         try:
-            os.remove(os.path.join(picturespath, f'{context.args[0]}.jpg'))
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f'The picture {context.args[0]}.jpg has been removed'
+            os.remove(os.path.join(picturespath, context.args[0]))
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f'The picture {context.args[0]}. has been removed'
                                             , reply_to_message_id=update.message.message_id)
             
             #reload available pictures
-            images = Path(picturespath).glob("*.jpg")
+            images = Path(picturespath).glob("*.jpg", "*.gif")
             availablepics = [p.name for p in images]
             availablepics.sort()
         except:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: /remove filename (without .jpg) "
+            await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: /remove filename (with file extension type) "
                                             , reply_to_message_id=update.message.message_id)
 
 if __name__ == '__main__':
