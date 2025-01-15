@@ -16,7 +16,9 @@ my_secret = os.environ['SEALBOT_SECRET']
 picturespath = sys.path[0]+"/pictures"
 
 # get all available pics in this directory
-images = Path(picturespath).glob("*.jpg", "*.gif")
+types = ('*.jpg', '*.gif')
+for files in types:
+    images = Path(picturespath).glob(files)
 availablepics = [p.name for p in images]
 availablepics.sort()
 
@@ -31,17 +33,34 @@ logging.basicConfig(
 async def seal(update: Update, context: CallbackContext):
     try:
         if context.args[0] in availablepics:
-            await context.bot.send_photo(chat_id=update.effective_chat.id,
-                                        photo=open(os.path.join(picturespath, context.args[0]), "rb"),
-                                         reply_to_message_id=update.message.message_id)
+            if "jpg" in text.split(".", 1):
+                await context.bot.send_photo(chat_id=update.effective_chat.id,
+                                            photo=open(os.path.join(picturespath, context.args[0]), "rb"),
+                                            reply_to_message_id=update.message.message_id)
+            else:
+                await context.bot.send_animation(chat_id=update.effective_chat.id,
+                                                animation=open(os.path.join(picturespath, context.args[0]), "rb"),
+                                                reply_to_message_id=update.message.message_id)
         else:
-            await context.bot.send_photo(chat_id=update.effective_chat.id,
-                                         photo=open(os.path.join(picturespath, random.choice(availablepics)), "rb"),
-                                         reply_to_message_id=update.message.message_id)
+            random_choice = random.choice(availablepics)
+            if "jpg" in text.split(".", 1):
+                await context.bot.send_photo(chat_id=update.effective_chat.id,
+                                            photo=open(os.path.join(picturespath, random_choice), "rb"),
+                                            reply_to_message_id=update.message.message_id)
+            else:
+                await context.bot.send_animation(chat_id=update.effective_chat.id,
+                                                animation=open(os.path.join(picturespath, random_choice), "rb"),
+                                                reply_to_message_id=update.message.message_id)
     except:
-        await context.bot.send_photo(chat_id=update.effective_chat.id,
-                                     photo=open(os.path.join(picturespath, random.choice(availablepics)), "rb"),
-                                     reply_to_message_id=update.message.message_id)
+        random_choice = random.choice(availablepics)
+        if "jpg" in text.split(".", 1):
+            await context.bot.send_photo(chat_id=update.effective_chat.id,
+                                        photo=open(os.path.join(picturespath, random_choice), "rb"),
+                                        reply_to_message_id=update.message.message_id)
+        else:
+            await context.bot.send_animation(chat_id=update.effective_chat.id,
+                                            animation=open(os.path.join(picturespath, random_choice), "rb"),
+                                            reply_to_message_id=update.message.message_id)
 
 async def seallist(update: Update, context: ContextTypes.DEFAULT_TYPE):
     fileslist = "\n"
@@ -91,6 +110,7 @@ async def add(update: Update, context: CallbackContext):
             if update.message.reply_to_message.photo:
                 global images
                 global availablepics
+                global types
                 photo_message = update.message.reply_to_message
                 file_id = photo_message.photo[-1].file_id
                 new_file = await context.bot.get_file(file_id)
@@ -101,7 +121,9 @@ async def add(update: Update, context: CallbackContext):
                                                 , reply_to_message_id=update.message.message_id)
         
                 #reload available pictures
-                images = Path(picturespath).glob("*.jpg", "*.gif")
+
+                for files in types:
+                    images = Path(picturespath).glob(files)
                 availablepics = [p.name for p in images]
                 availablepics.sort()
         except:
@@ -113,13 +135,15 @@ async def remove(update: Update, context: CallbackContext):
     if str(user_id) in sealbot_admins:
         global images
         global availablepics
+        global types
         try:
             os.remove(os.path.join(picturespath, context.args[0]))
             await context.bot.send_message(chat_id=update.effective_chat.id, text=f'The picture {context.args[0]}. has been removed'
                                             , reply_to_message_id=update.message.message_id)
             
             #reload available pictures
-            images = Path(picturespath).glob("*.jpg", "*.gif")
+            for files in types:
+                images = Path(picturespath).glob(files)
             availablepics = [p.name for p in images]
             availablepics.sort()
         except:
