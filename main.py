@@ -17,8 +17,9 @@ picturespath = sys.path[0]+"/pictures"
 
 # get all available pics in this directory
 types = ('*.jpg', '*.gif')
+images = []
 for files in types:
-    images = Path(picturespath).glob(files)
+    images += Path(picturespath).glob(files)
 availablepics = [p.name for p in images]
 availablepics.sort()
 
@@ -110,7 +111,6 @@ async def add(update: Update, context: CallbackContext):
             if update.message.reply_to_message.photo:
                 global images
                 global availablepics
-                global types
                 photo_message = update.message.reply_to_message
                 file_id = photo_message.photo[-1].file_id
                 new_file = await context.bot.get_file(file_id)
@@ -121,9 +121,10 @@ async def add(update: Update, context: CallbackContext):
                                                 , reply_to_message_id=update.message.message_id)
         
                 #reload available pictures
-
+                images = []
+                availablepics = []
                 for files in types:
-                    images = Path(picturespath).glob(files)
+                    images += Path(picturespath).glob(files)
                 availablepics = [p.name for p in images]
                 availablepics.sort()
         except:
@@ -135,15 +136,16 @@ async def remove(update: Update, context: CallbackContext):
     if str(user_id) in sealbot_admins:
         global images
         global availablepics
-        global types
         try:
             os.remove(os.path.join(picturespath, context.args[0]))
             await context.bot.send_message(chat_id=update.effective_chat.id, text=f'The picture {context.args[0]}. has been removed'
                                             , reply_to_message_id=update.message.message_id)
             
             #reload available pictures
+            images = []
+            availablepics = []
             for files in types:
-                images = Path(picturespath).glob(files)
+                images += Path(picturespath).glob(files)
             availablepics = [p.name for p in images]
             availablepics.sort()
         except:
