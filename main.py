@@ -108,25 +108,35 @@ async def add(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     if str(user_id) in sealbot_admins:
         try:
+            global images
+            global availablepics
+
             if update.message.reply_to_message.photo:
-                global images
-                global availablepics
                 photo_message = update.message.reply_to_message
                 file_id = photo_message.photo[-1].file_id
                 new_file = await context.bot.get_file(file_id)
+                
+            elif update.message.reply_to_message.animation:
+                animation_message = update.message.reply_to_message
+                file_id = animation_message.animation.file_id
+                new_file = await context.bot.get_file(file_id)
+            
+            else:
+                await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: react to a picture with /add filename (don't forget the file extension type!)"
+                                            , reply_to_message_id=update.message.message_id)
+                return
 
-                await new_file.download_to_drive(os.path.join(picturespath, context.args[0]))
+            await new_file.download_to_drive(os.path.join(picturespath, context.args[0]))
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Your picture has been saved as {context.args[0]}'
+                                            , reply_to_message_id=update.message.message_id)
 
-                await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Your picture has been saved as {context.args[0]}'
-                                                , reply_to_message_id=update.message.message_id)
-        
-                #reload available pictures
-                images = []
-                availablepics = []
-                for files in types:
-                    images += Path(picturespath).glob(files)
-                availablepics = [p.name for p in images]
-                availablepics.sort()
+            #reload available pictures
+            images = []
+            availablepics = []
+            for files in types:
+                images += Path(picturespath).glob(files)
+            availablepics = [p.name for p in images]
+            availablepics.sort()
         except:
             await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: react to a picture with /add filename (don't forget the file extension type!)"
                                             , reply_to_message_id=update.message.message_id)
