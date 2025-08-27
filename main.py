@@ -1,7 +1,7 @@
 import os
 import logging
-from telegram import Update  #pip install python-telegram-bot
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, JobQueue
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup   #pip install python-telegram-bot
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, JobQueue, CallbackQueryHandler
 import random
 import sys
 from datetime import datetime
@@ -64,11 +64,85 @@ async def seal(update: Update, context: CallbackContext):
                                             reply_to_message_id=update.message.message_id)
 
 async def seallist(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    fileslist = "\n"
-    for n in range(len(availablepics)):
-        fileslist += availablepics[n] + "\n" 
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Available pictures:"+ fileslist
-                                   , reply_to_message_id=update.message.message_id)
+    chat_type = update.effective_chat.type
+    if chat_type in ("group", "supergroup"):
+        keyboardPm = await build_pm_keyboard((await context.bot.get_me()).username)
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+                                        text="This command is meant for private messages.",
+                                        reply_markup=keyboardPm,
+                                        reply_to_message_id=update.message.message_id if update.message else None)
+    else:
+        keyboard = await build_list_keyboard(page=0)
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+                                        text=f"Number of pictures available: {len(availablepics)}\nPage: 1 / {len(availablepics) // 8 + 1}\n Choose a picture:",
+                                        reply_markup=keyboard,
+                                        reply_to_message_id=update.message.message_id if update.message else None)
+    return
+
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if context.args and context.args[0]:
+        if context.args and context.args[0] == "seallist":
+            await seallist(update, context)
+            return
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+                                            text="Hello! I'm SealBot. Use /seal to get a random seal picture or /seallist to choose one from the list.",
+                                            reply_to_message_id=update.message.message_id if update.message else None)
+        return
+
+async def build_pm_keyboard(me) -> InlineKeyboardMarkup:
+    url = f"https://t.me/{me}?start=seallist"
+    keyboardPm = [[InlineKeyboardButton("open PM", url=url)]]
+    return InlineKeyboardMarkup(keyboardPm)
+
+async def build_list_keyboard(page: int = 0, page_size: int = 8) -> InlineKeyboardMarkup:
+    start_idx = page * page_size
+    chunk = availablepics[start_idx:start_idx + page_size]
+    buttons = [[InlineKeyboardButton(name, callback_data=f"send:{name}")] for name in chunk]
+
+    nav = []
+    if start_idx > 0:
+        nav.append(InlineKeyboardButton("⟨ Prev", callback_data=f"page:{page-1}"))
+    if start_idx + page_size < len(availablepics):
+        nav.append(InlineKeyboardButton("Next ⟩", callback_data=f"page:{page+1}"))
+    if nav:
+        buttons.append(nav)
+
+    return InlineKeyboardMarkup(buttons)
+
+
+async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    if not query:
+        return
+    await query.answer()
+    data = query.data or ""
+
+    if data.startswith("send:"):
+        fname = data.split(":", 1)[1]
+        path = os.path.join(picturespath, fname)
+        if not os.path.exists(path):
+            await context.bot.send_message(chat_id=query.message.chat.id, text="File not found.")
+            return
+        if fname.lower().endswith('.jpg'):
+            await context.bot.send_photo(chat_id=query.message.chat.id, photo=open(path, "rb"))
+        else:
+            await context.bot.send_animation(chat_id=query.message.chat.id, animation=open(path, "rb"))
+
+    elif data.startswith("page:"):
+        try:
+            page = int(data.split(":", 1)[1])
+        except:
+            page = 0
+        keyboard = await build_list_keyboard(page=page)
+        # edit the message to show the new page
+        try:
+            await query.message.edit_text(text=f"Number of pictures available: {len(availablepics)}\nPage: {page+1} / {len(availablepics) // 8 + 1}\n Choose a picture:", reply_markup=keyboard)
+        except:
+            # fallback: send a new message if edit fails
+            await context.bot.send_message(chat_id=query.message.chat.id, text=f"Number of pictures available: {len(availablepics)}\nPage: {page+1} / {len(availablepics) // 8 + 1}\n Choose a picture:", reply_markup=keyboard)
+
 
 
 async def send_update_message(context: CallbackContext):
@@ -176,6 +250,12 @@ if __name__ == '__main__':
 
     remove_handler = CommandHandler("remove", remove)
     application.add_handler(remove_handler)
+
+    # register callback query handler for inline keyboard interactions
+    application.add_handler(CallbackQueryHandler(callback_query_handler))
+
+    start_handler = CommandHandler('start', start)
+    application.add_handler(start_handler)
 
     # Start the send_update_message function in a new thread
     threading.Thread(target=asyncio.run, args=(send_update_message(application),)).start()
