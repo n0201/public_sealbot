@@ -164,11 +164,12 @@ async def send_update_message(context: CallbackContext):
                     with open(file_path) as f:
                         data = json.load(f)
                         update_date_cache = data["response"][0]["datetime"]
+                        version = data["response"][0]["version"]
                 sending_error = False
                 if update_date != update_date_cache:
                     while sending_error == False:
                         try:
-                            await context.bot.send_message(chat_id=os.environ['SEALBOT_UPDATE_CHATID'], text="New update available!") # CHAT ID MISSING
+                            await context.bot.send_message(chat_id=os.environ['SEALBOT_UPDATE_CHATID'], text=f"New LOS {version} update is available!\n\nKeep in mind: this bot only tracks dreamlte!") # CHAT ID MISSING
                             sending_error = True
                         except:
                             pass
