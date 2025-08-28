@@ -4,12 +4,16 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup   #pip i
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, JobQueue, CallbackQueryHandler
 import random
 import sys
-from datetime import datetime
+import datetime
+from datetime import time as dtime
 import time
 import threading
 import asyncio
 import json
 from pathlib import Path
+import requests
+
+print(dtime(hour=21, minute=31))
 
 my_secret = os.environ['SEALBOT_SECRET']
 
@@ -179,6 +183,24 @@ async def send_update_message(context: CallbackContext):
             first_time = True
         await asyncio.sleep(45)
 
+async def post_of_the_day(context: CallbackContext):
+    print("Job triggered at", datetime.datetime.now())
+         
+    r = requests.get("https://meme-api.com/gimme/seal").json()
+    photo_url = r['url']
+    text = r['title']
+
+    # convert imgur links so they work properly
+    if "imgur.com" in photo_url and not photo_url.endswith((".jpg", ".png", ".gif")):
+        photo_url = photo_url.replace("imgur.com/", "i.imgur.com/") + ".jpg"
+
+    print("sending:", photo_url)
+    await context.bot.send_photo(
+        chat_id=os.environ['SEALBOT_UPDATE_CHATID'],
+        photo=photo_url,
+        caption=text
+        )
+
 async def add(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     if str(user_id) in sealbot_admins:
@@ -259,6 +281,9 @@ if __name__ == '__main__':
     application.add_handler(start_handler)
 
     # Start the send_update_message function in a new thread
-    threading.Thread(target=asyncio.run, args=(send_update_message(application),)).start()
+    application.job_queue.run_daily(send_update_message, time=dtime(hour=20, minute=0))
+
+    # Start the post_of_the_day function in a new thread
+    application.job_queue.run_daily(post_of_the_day, time=dtime(hour=16, minute=0))
 
     application.run_polling()
