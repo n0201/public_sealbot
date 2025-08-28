@@ -4,10 +4,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup   #pip i
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, JobQueue, CallbackQueryHandler
 import random
 import sys
-import datetime
 from datetime import time as dtime
-import time
-import threading
 import asyncio
 import json
 from pathlib import Path
@@ -150,45 +147,41 @@ async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_T
 
 
 async def send_update_message(context: CallbackContext):
+    update_date = ""
     file_path = sys.path[0]+"/ota/dreamlte.json"
     if os.path.exists(file_path):
         with open(file_path) as f:
             data = json.load(f)
             update_date = data["response"][0]["datetime"]
-    first_time = True
-    while True:
-        if (datetime.now().hour == 18 or datetime.now().hour == 12) and datetime.now().minute == 0 and first_time == True:
-            os.system(f"rm {file_path}")
-            os.system(f"curl -LJO --output-dir {os.path.dirname(file_path)} https://raw.githubusercontent.com/ivanmeler/ota_provider/master/21.0/dreamlte.json")
-            while not os.path.exists(file_path):
-                print("it is not there yet")
-                time.sleep(1)
-            else:
-                if os.path.exists(file_path):
-                    with open(file_path) as f:
-                        data = json.load(f)
-                        update_date_cache = data["response"][0]["datetime"]
-                        version = data["response"][0]["version"]
-                sending_error = False
-                if update_date != update_date_cache:
-                    while sending_error == False:
-                        try:
-                            await context.bot.send_message(chat_id=os.environ['SEALBOT_UPDATE_CHATID'], text=f"New LOS {version} update is available!\n\nKeep in mind: this bot only tracks dreamlte!") # CHAT ID MISSING
-                            sending_error = True
-                        except:
-                            pass
-                first_time = False
-                update_date = update_date_cache
-        elif datetime.now().minute == 1 and (datetime.now().hour == 18 or datetime.now().hour == 12):
-            first_time = True
-        await asyncio.sleep(45)
+    
 
+    os.system(f"rm {file_path}")
+    os.system(f"curl -LJO --insecure --output-dir {os.path.dirname(file_path)} https://raw.githubusercontent.com/ivanmeler/ota_provider/master/21.0/dreamlte.json")
+    while not os.path.exists(file_path):
+        print("it is not there yet")
+        asyncio.sleep(1)
+    else:
+        if os.path.exists(file_path):
+            with open(file_path) as f:
+                data = json.load(f)
+                update_date_cache = data["response"][0]["datetime"]
+                version = data["response"][0]["version"]
+        if update_date != update_date_cache:
+            await context.bot.send_message(chat_id=os.environ['SEALBOT_UPDATE_CHATID'], text=f"New LOS {version} update is available!\n\nKeep in mind: this bot only tracks dreamlte!")
+
+
+# powered by reddit and meme-api :)
 async def post_of_the_day(context: CallbackContext):
-    print("Job triggered at", datetime.datetime.now())
-         
+
     r = requests.get("https://meme-api.com/gimme/seal").json()
     photo_url = r['url']
     text = r['title']
+    nsfw = r['nsfw']
+    while nsfw:
+        r = requests.get("https://meme-api.com/gimme/seal").json()
+        photo_url = r['url']
+        text = r['title']
+        nsfw = r['nsfw']
 
     # convert imgur links so they work properly
     if "imgur.com" in photo_url and not photo_url.endswith((".jpg", ".png", ".gif")):
@@ -281,9 +274,9 @@ if __name__ == '__main__':
     application.add_handler(start_handler)
 
     # Start the send_update_message function in a new thread
-    application.job_queue.run_daily(send_update_message, time=dtime(hour=20, minute=0))
+    application.job_queue.run_daily(send_update_message, time=dtime(hour=16, minute=0))
 
     # Start the post_of_the_day function in a new thread
-    application.job_queue.run_daily(post_of_the_day, time=dtime(hour=16, minute=0))
+    application.job_queue.run_daily(post_of_the_day, time=dtime(hour=12, minute=0))
 
     application.run_polling()
