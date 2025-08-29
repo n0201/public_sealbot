@@ -173,12 +173,12 @@ async def send_update_message(context: CallbackContext):
 # powered by reddit and meme-api :)
 async def post_of_the_day(context: CallbackContext):
 
-    r = requests.get("https://meme-api.com/gimme/seal").json()
+    r = requests.get("https://meme-api.com/gimme/seals").json()
     photo_url = r['url']
     text = r['title']
     nsfw = r['nsfw']
     while nsfw:
-        r = requests.get("https://meme-api.com/gimme/seal").json()
+        r = requests.get("https://meme-api.com/gimme/seals").json()
         photo_url = r['url']
         text = r['title']
         nsfw = r['nsfw']
