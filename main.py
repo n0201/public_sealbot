@@ -176,11 +176,13 @@ async def post_of_the_day(context: CallbackContext):
     r = requests.get("https://meme-api.com/gimme/seals").json()
     photo_url = r['url']
     text = r['title']
+    post_url = r['postLink']
     nsfw = r['nsfw']
     while nsfw:
         r = requests.get("https://meme-api.com/gimme/seals").json()
         photo_url = r['url']
         text = r['title']
+        post_url = r['postLink']
         nsfw = r['nsfw']
 
     # convert imgur links so they work properly
@@ -191,7 +193,8 @@ async def post_of_the_day(context: CallbackContext):
     await context.bot.send_photo(
         chat_id=os.environ['SEALBOT_UPDATE_CHATID'],
         photo=photo_url,
-        caption=text
+        caption=text+f'\n\n<a href="{post_url}">link to post</a>',
+        parse_mode="HTML"
         )
 
 # random seals from r/seals (usable for admins only - for now)
