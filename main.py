@@ -194,6 +194,14 @@ async def post_of_the_day(context: CallbackContext):
         caption=text
         )
 
+# random seals from r/seals (usable for admins only - for now)
+async def rseal(update: Update, context: CallbackContext):
+    user_id = update.message.from_user.id
+    if str(user_id) in sealbot_admins:
+        await post_of_the_day(context)
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="only available for seally admins - for now.")
+
 async def add(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     if str(user_id) in sealbot_admins:
@@ -266,6 +274,9 @@ if __name__ == '__main__':
 
     remove_handler = CommandHandler("remove", remove)
     application.add_handler(remove_handler)
+
+    rseal_handler = CommandHandler("rseal", rseal)
+    application.add_handler(rseal_handler)
 
     # register callback query handler for inline keyboard interactions
     application.add_handler(CallbackQueryHandler(callback_query_handler))
