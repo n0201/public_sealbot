@@ -10,7 +10,6 @@ import json
 from pathlib import Path
 import requests
 
-print(dtime(hour=21, minute=31))
 
 my_secret = os.environ['SEALBOT_SECRET']
 
