@@ -1,6 +1,5 @@
 import os
 import logging
-from urllib import response
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup   #pip install python-telegram-bot
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, JobQueue, CallbackQueryHandler
 import random
@@ -298,7 +297,7 @@ if __name__ == '__main__':
     application.add_handler(start_handler)
 
     # Start the send_update_message function in a new thread
-    application.job_queue.run_daily(send_update_message, time=dtime(hour=10, minute=35))
+    application.job_queue.run_daily(send_update_message, time=dtime(hour=16, minute=0))
 
     # Start the post_of_the_day function in a new thread
     application.job_queue.run_daily(post_of_the_day, time=dtime(hour=12, minute=0))
