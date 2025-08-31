@@ -1,5 +1,6 @@
 import os
 import logging
+from urllib import response
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup   #pip install python-telegram-bot
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, JobQueue, CallbackQueryHandler
 import random
@@ -204,6 +205,13 @@ async def rseal(update: Update, context: CallbackContext):
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="only available for seally admins - for now.")
 
+async def oscar(update: Update, context: CallbackContext):
+    response = requests.get("https://files.nerv.run/oscar", allow_redirects=True)
+    final_url = response.url
+    await context.bot.send_photo(chat_id=update.effective_chat.id,
+                                photo=final_url,
+                                reply_to_message_id=update.message.message_id)
+
 async def add(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     if str(user_id) in sealbot_admins:
@@ -280,6 +288,9 @@ if __name__ == '__main__':
     rseal_handler = CommandHandler("rseal", rseal)
     application.add_handler(rseal_handler)
 
+    oscar_handler = CommandHandler("oscar", oscar)
+    application.add_handler(oscar_handler)
+
     # register callback query handler for inline keyboard interactions
     application.add_handler(CallbackQueryHandler(callback_query_handler))
 
@@ -287,7 +298,7 @@ if __name__ == '__main__':
     application.add_handler(start_handler)
 
     # Start the send_update_message function in a new thread
-    application.job_queue.run_daily(send_update_message, time=dtime(hour=16, minute=0))
+    application.job_queue.run_daily(send_update_message, time=dtime(hour=10, minute=35))
 
     # Start the post_of_the_day function in a new thread
     application.job_queue.run_daily(post_of_the_day, time=dtime(hour=12, minute=0))
