@@ -9,7 +9,12 @@ import asyncio
 import json
 from pathlib import Path
 import requests
+from PIL import Image, ImageFile
+from io import BytesIO
 
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+MAX_BYTES = 10485760
+QUALITY_STEP = 5
 
 my_secret = os.environ['SEALBOT_SECRET']
 
@@ -205,10 +210,38 @@ async def rseal(update: Update, context: CallbackContext):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="only available for seally admins - for now.")
 
 async def oscar(update: Update, context: CallbackContext):
-    response = requests.get("https://files.nerv.run/oscar", allow_redirects=True)
-    final_url = response.url
+
+    response = requests.get("https://files.nerv.run/oscar", allow_redirects=True, timeout=20, stream=True)
+
+    # fetch actual image bytes
+    img_resp = response
+    img_resp.raise_for_status()
+    src_buf = BytesIO(img_resp.content)
+    src_buf.seek(0)
+
+    img = Image.open(src_buf)
+
+    out = BytesIO()
+    fmt = (img.format or "").upper()
+    img.save(out, format=fmt)
+    while out.getbuffer().nbytes > MAX_BYTES:
+        if fmt == "JPEG":
+            out.seek(0); out.truncate(0)
+            img.save(out, format="JPEG", quality=90)
+        elif fmt == "PNG":
+            out.seek(0); out.truncate(0)
+            img.save(out, format="PNG", optimize=True, compress_level=9, quality=90)
+        else:
+            out.seek(0); out.truncate(0)
+            img.save(out, format=fmt)
+
+    else:
+        out.seek(0); out.truncate(0)
+        img.save(out, format=fmt)
+        out.seek(0)
+
     await context.bot.send_photo(chat_id=update.effective_chat.id,
-                                photo=final_url,
+                                photo=out,
                                 reply_to_message_id=update.message.message_id)
 
 async def add(update: Update, context: CallbackContext):
@@ -270,7 +303,7 @@ async def remove(update: Update, context: CallbackContext):
                                             , reply_to_message_id=update.message.message_id)
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(my_secret).build()
+    application = ApplicationBuilder().token(my_secret).read_timeout(60).write_timeout(60).build()
 
     start_handler = CommandHandler('seal', seal)
     application.add_handler(start_handler)
