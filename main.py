@@ -39,7 +39,7 @@ logging.basicConfig(
 async def seal(update: Update, context: CallbackContext):
     try:
         if context.args[0] in availablepics:
-            if "jpg" or "png" in context.args[0].split(".", 1):
+            if context.args[0].split(".", 1)[1] in ("jpg", "png"):
                 await context.bot.send_photo(chat_id=update.effective_chat.id,
                                             photo=open(os.path.join(picturespath, context.args[0]), "rb"),
                                             reply_to_message_id=update.message.message_id)
@@ -49,7 +49,7 @@ async def seal(update: Update, context: CallbackContext):
                                                 reply_to_message_id=update.message.message_id)
         else:
             random_choice = random.choice(availablepics)
-            if "jpg" or "png" in random_choice.split(".", 1):
+            if random_choice.split(".", 1)[1] in ("jpg", "png"):
                 await context.bot.send_photo(chat_id=update.effective_chat.id,
                                             photo=open(os.path.join(picturespath, random_choice), "rb"),
                                             reply_to_message_id=update.message.message_id)
@@ -59,7 +59,7 @@ async def seal(update: Update, context: CallbackContext):
                                                 reply_to_message_id=update.message.message_id)
     except:
         random_choice = random.choice(availablepics)
-        if "jpg" or "png" in random_choice.split(".", 1):
+        if random_choice.split(".", 1)[1] in ("jpg", "png"):
             await context.bot.send_photo(chat_id=update.effective_chat.id,
                                         photo=open(os.path.join(picturespath, random_choice), "rb"),
                                         reply_to_message_id=update.message.message_id)
