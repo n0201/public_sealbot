@@ -21,7 +21,7 @@ my_secret = os.environ['SEALBOT_SECRET']
 picturespath = sys.path[0]+"/pictures"
 
 # get all available pics in this directory
-types = ('*.jpg', '*.gif')
+types = ('*.jpg', '*.gif', '*.png')
 images = []
 for files in types:
     images += Path(picturespath).glob(files)
@@ -39,7 +39,7 @@ logging.basicConfig(
 async def seal(update: Update, context: CallbackContext):
     try:
         if context.args[0] in availablepics:
-            if "jpg" in context.args[0].split(".", 1):
+            if "jpg" or "png" in context.args[0].split(".", 1):
                 await context.bot.send_photo(chat_id=update.effective_chat.id,
                                             photo=open(os.path.join(picturespath, context.args[0]), "rb"),
                                             reply_to_message_id=update.message.message_id)
@@ -49,7 +49,7 @@ async def seal(update: Update, context: CallbackContext):
                                                 reply_to_message_id=update.message.message_id)
         else:
             random_choice = random.choice(availablepics)
-            if "jpg" in random_choice.split(".", 1):
+            if "jpg" or "png" in random_choice.split(".", 1):
                 await context.bot.send_photo(chat_id=update.effective_chat.id,
                                             photo=open(os.path.join(picturespath, random_choice), "rb"),
                                             reply_to_message_id=update.message.message_id)
@@ -59,7 +59,7 @@ async def seal(update: Update, context: CallbackContext):
                                                 reply_to_message_id=update.message.message_id)
     except:
         random_choice = random.choice(availablepics)
-        if "jpg" in random_choice.split(".", 1):
+        if "jpg" or "png" in random_choice.split(".", 1):
             await context.bot.send_photo(chat_id=update.effective_chat.id,
                                         photo=open(os.path.join(picturespath, random_choice), "rb"),
                                         reply_to_message_id=update.message.message_id)
@@ -131,6 +131,8 @@ async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_T
             await context.bot.send_message(chat_id=query.message.chat.id, text="File not found.")
             return
         if fname.lower().endswith('.jpg'):
+            await context.bot.send_photo(chat_id=query.message.chat.id, photo=open(path, "rb"))
+        elif fname.lower().endswith('.png'):
             await context.bot.send_photo(chat_id=query.message.chat.id, photo=open(path, "rb"))
         else:
             await context.bot.send_animation(chat_id=query.message.chat.id, animation=open(path, "rb"))
