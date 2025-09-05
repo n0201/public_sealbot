@@ -177,7 +177,7 @@ async def send_update_message(context: CallbackContext):
 
 
 # powered by reddit and meme-api :)
-async def post_of_the_day(context: CallbackContext):
+async def post_of_the_day(context: CallbackContext, chat_id=os.environ['SEALBOT_UPDATE_CHATID']):
 
     r = requests.get("https://meme-api.com/gimme/seals").json()
     photo_url = r['url']
@@ -197,7 +197,7 @@ async def post_of_the_day(context: CallbackContext):
 
     print("sending:", photo_url)
     await context.bot.send_photo(
-        chat_id=os.environ['SEALBOT_UPDATE_CHATID'],
+        chat_id=chat_id,
         photo=photo_url,
         caption=text+f'\n\n<a href="{post_url}">link to post</a>',
         parse_mode="HTML"
@@ -207,7 +207,7 @@ async def post_of_the_day(context: CallbackContext):
 async def rseal(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     if str(user_id) in sealbot_admins:
-        await post_of_the_day(context)
+        await post_of_the_day(context, chat_id=update.effective_chat.id)
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="only available for seally admins - for now.")
 
