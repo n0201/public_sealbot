@@ -218,33 +218,38 @@ async def oscar(update: Update, context: CallbackContext):
     # fetch actual image bytes
     img_resp = response
     img_resp.raise_for_status()
-    src_buf = BytesIO(img_resp.content)
-    src_buf.seek(0)
+    if img_resp.headers["Content-Type"].split("/", 1)[1] in ("jpg", "png"):
+        src_buf = BytesIO(img_resp.content)
+        src_buf.seek(0)
 
-    img = Image.open(src_buf)
+        img = Image.open(src_buf)
 
-    out = BytesIO()
-    fmt = (img.format or "").upper()
-    img.save(out, format=fmt)
-    while out.getbuffer().nbytes > MAX_BYTES:
-        if fmt == "JPEG":
-            out.seek(0); out.truncate(0)
-            img.save(out, format="JPEG", quality=90)
-        elif fmt == "PNG":
-            out.seek(0); out.truncate(0)
-            img.save(out, format="PNG", optimize=True, compress_level=9, quality=90)
+        out = BytesIO()
+        fmt = (img.format or "").upper()
+        img.save(out, format=fmt)
+        while out.getbuffer().nbytes > MAX_BYTES:
+            if fmt == "JPEG":
+                out.seek(0); out.truncate(0)
+                img.save(out, format="JPEG", quality=90)
+            elif fmt == "PNG":
+                out.seek(0); out.truncate(0)
+                img.save(out, format="PNG", optimize=True, compress_level=9)
+            else:
+                out.seek(0); out.truncate(0)
+                img.save(out, format=fmt)
+
         else:
             out.seek(0); out.truncate(0)
             img.save(out, format=fmt)
+            out.seek(0)
 
+        await context.bot.send_photo(chat_id=update.effective_chat.id,
+                                    photo=out,
+                                    reply_to_message_id=update.message.message_id)
     else:
-        out.seek(0); out.truncate(0)
-        img.save(out, format=fmt)
-        out.seek(0)
-
-    await context.bot.send_photo(chat_id=update.effective_chat.id,
-                                photo=out,
-                                reply_to_message_id=update.message.message_id)
+        await context.bot.send_video(chat_id=update.effective_chat.id,
+                                        video=BytesIO(img_resp.content),
+                                        reply_to_message_id=update.message.message_id)
 
 async def add(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
@@ -322,8 +327,8 @@ if __name__ == '__main__':
     rseal_handler = CommandHandler("rseal", rseal)
     application.add_handler(rseal_handler)
 
-    oscar_handler = CommandHandler("oscar", oscar)
-    application.add_handler(oscar_handler)
+#    oscar_handler = CommandHandler("oscar", oscar)
+#    application.add_handler(oscar_handler)
 
     # register callback query handler for inline keyboard interactions
     application.add_handler(CallbackQueryHandler(callback_query_handler))
