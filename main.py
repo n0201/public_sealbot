@@ -177,7 +177,7 @@ async def send_update_message(context: CallbackContext):
 
 
 # powered by reddit and meme-api :)
-async def post_of_the_day(context: CallbackContext, chat_id=os.environ['SEALBOT_UPDATE_CHATID']):
+async def post_of_the_week(context: CallbackContext, chat_id=os.environ['SEALBOT_UPDATE_CHATID']):
 
     r = requests.get("https://meme-api.com/gimme/seals").json()
     photo_url = r['url']
@@ -207,7 +207,7 @@ async def post_of_the_day(context: CallbackContext, chat_id=os.environ['SEALBOT_
 async def rseal(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     if str(user_id) in sealbot_admins:
-        await post_of_the_day(context, chat_id=update.effective_chat.id)
+        await post_of_the_week(context, chat_id=update.effective_chat.id)
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="only available for seally admins - for now.")
 
@@ -336,10 +336,8 @@ if __name__ == '__main__':
     start_handler = CommandHandler('start', start)
     application.add_handler(start_handler)
 
-    # Start the send_update_message function in a new thread
     application.job_queue.run_daily(send_update_message, time=dtime(hour=16, minute=0))
 
-    # Start the post_of_the_day function in a new thread
-    application.job_queue.run_daily(post_of_the_day, time=dtime(hour=12, minute=0))
+    application.job_queue.run_daily(post_of_the_week, time=dtime(hour=12, minute=0), days=([1]))
 
     application.run_polling()
