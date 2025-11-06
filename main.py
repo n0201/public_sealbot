@@ -21,7 +21,7 @@ my_secret = os.environ['SEALBOT_SECRET']
 picturespath = sys.path[0]+"/pictures"
 
 # get all available pics in this directory
-types = ('*.jpg', '*.gif', '*.png')
+types = ('*.jpg', '*.gif', '*.png', '*.mp4', '*.webm', '*.mov')
 images = []
 for files in types:
     images += Path(picturespath).glob(files)
@@ -43,20 +43,28 @@ async def seal(update: Update, context: CallbackContext):
                 await context.bot.send_photo(chat_id=update.effective_chat.id,
                                             photo=open(os.path.join(picturespath, context.args[0]), "rb"),
                                             reply_to_message_id=update.message.message_id)
-            else:
+            elif context.args[0].split(".", 1)[1] in ("gif"):
                 await context.bot.send_animation(chat_id=update.effective_chat.id,
                                                 animation=open(os.path.join(picturespath, context.args[0]), "rb"),
                                                 reply_to_message_id=update.message.message_id)
+            elif context.args[0].split(".", 1)[1] in ("mp4", "webm", "mov"):
+                await context.bot.send_video(chat_id=update.effective_chat.id,
+                                            video=open(os.path.join(picturespath, context.args[0]), "rb"),
+                                            reply_to_message_id=update.message.message_id)
         else:
             random_choice = random.choice(availablepics)
             if random_choice.split(".", 1)[1] in ("jpg", "png"):
                 await context.bot.send_photo(chat_id=update.effective_chat.id,
                                             photo=open(os.path.join(picturespath, random_choice), "rb"),
                                             reply_to_message_id=update.message.message_id)
-            else:
+            elif random_choice.split(".", 1)[1] in ("gif"):
                 await context.bot.send_animation(chat_id=update.effective_chat.id,
                                                 animation=open(os.path.join(picturespath, random_choice), "rb"),
                                                 reply_to_message_id=update.message.message_id)
+            elif random_choice.split(".", 1)[1] in ("mp4", "webm", "mov"):
+                await context.bot.send_video(chat_id=update.effective_chat.id,
+                                            video=open(os.path.join(picturespath, random_choice), "rb"),
+                                            reply_to_message_id=update.message.message_id)
     except:
         random_choice = random.choice(availablepics)
         if random_choice.split(".", 1)[1] in ("jpg", "png"):
