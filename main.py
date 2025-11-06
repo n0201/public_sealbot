@@ -262,19 +262,27 @@ async def add(update: Update, context: CallbackContext):
                 photo_message = update.message.reply_to_message
                 file_id = photo_message.photo[-1].file_id
                 new_file = await context.bot.get_file(file_id)
+                type_of_file = "photo"
                 
             elif update.message.reply_to_message.animation:
                 animation_message = update.message.reply_to_message
                 file_id = animation_message.animation.file_id
                 new_file = await context.bot.get_file(file_id)
+                type_of_file = "animation"
+
+            elif update.message.reply_to_message.video:
+                video_message = update.message.reply_to_message
+                file_id = video_message.video.file_id
+                new_file = await context.bot.get_file(file_id)
+                type_of_file = "video"
             
             else:
-                await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: react to a picture with /add filename (don't forget the file extension type!)"
+                await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: react to a picture/animation/gif with /add filename (don't forget the file extension type!)"
                                             , reply_to_message_id=update.message.message_id)
                 return
 
             await new_file.download_to_drive(os.path.join(picturespath, context.args[0]))
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Your picture has been saved as {context.args[0]}'
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Your {type_of_file} has been saved as {context.args[0]}'
                                             , reply_to_message_id=update.message.message_id)
 
             #reload available pictures
