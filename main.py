@@ -192,15 +192,36 @@ async def post_of_the_week(context: CallbackContext, chat_id=os.environ['SEALBOT
         nsfw = r['nsfw']
 
     # convert imgur links so they work properly
-    if "imgur.com" in photo_url and not photo_url.endswith((".jpg", ".png", ".gif")):
+    if "imgur.com" in photo_url and not photo_url.endswith((".jpg", ".png")):
         photo_url = photo_url.replace("imgur.com/", "i.imgur.com/") + ".jpg"
 
-    print("sending:", photo_url)
-    await context.bot.send_photo(
-        chat_id=chat_id,
-        photo=photo_url,
-        caption=text+f'\n\n<a href="{post_url}">link to post</a>',
-        parse_mode="HTML"
+    if photo_url.endswith(".gifv"):
+        photo_url = photo_url[:-1]  # change .gifv to .gif
+
+    if photo_url.endswith((".png", ".jpg", ".webp")):
+        print("sending:", photo_url)
+        await context.bot.send_photo(
+            chat_id=chat_id,
+            photo=photo_url,
+            caption=text+f'\n\n<a href="{post_url}">link to post</a>',
+            parse_mode="HTML"
+        )
+    elif photo_url.endswith((".gif")):
+        print("sending:", photo_url)
+        await context.bot.send_animation(
+            chat_id=chat_id,
+            animation=photo_url,
+            caption=text+f'\n\n<a href="{post_url}">link to post</a>',
+            parse_mode="HTML"
+        )
+    
+    elif photo_url.endswith((".mp4", ".webm", ".mov")):
+        print("sending:", photo_url)
+        await context.bot.send_video(
+            chat_id=chat_id,
+            video=photo_url,
+            caption=text+f'\n\n<a href="{post_url}">link to post</a>',
+            parse_mode="HTML"
         )
 
 # random seals from r/seals (usable for admins only - for now)
