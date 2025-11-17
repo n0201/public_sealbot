@@ -109,6 +109,12 @@ async def build_pm_keyboard(me) -> InlineKeyboardMarkup:
     keyboardPm = [[InlineKeyboardButton("open PM", url=url)]]
     return InlineKeyboardMarkup(keyboardPm)
 
+# doesn't work yet
+async def build_update_keyboard() -> InlineKeyboardMarkup:
+    url = f"intent://open/#Intent;launchFlags=0x10000000;component=org.lineageos.updater/org.lineageos.updater.UpdatesActivity;end"
+    keyboardPm = [[InlineKeyboardButton("Open los updater", url=url)]]
+    return InlineKeyboardMarkup(keyboardPm)
+
 async def build_list_keyboard(page: int = 0, page_size: int = 8) -> InlineKeyboardMarkup:
     start_idx = page * page_size
     chunk = availablepics[start_idx:start_idx + page_size]
@@ -160,9 +166,10 @@ async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_T
 
 
 
-async def send_update_message(context: CallbackContext):
+# TODO: Add inline keyboard to open LOS updater app
+async def send_update_message(context: CallbackContext, chat_id=os.environ['SEALBOT_UPDATE_CHATID']):
     update_date = ""
-    file_path = sys.path[0]+"/ota/dreamlte.json"
+    file_path = sys.path[0]+"/ota/ota.json"
     if os.path.exists(file_path):
         with open(file_path) as f:
             data = json.load(f)
@@ -170,7 +177,7 @@ async def send_update_message(context: CallbackContext):
     
 
     os.system(f"rm {file_path}")
-    os.system(f"curl -LJO --insecure --output-dir {os.path.dirname(file_path)} https://raw.githubusercontent.com/ivanmeler/ota_provider/master/21.0/dreamlte.json")
+    os.system(f"curl -L --insecure -o {os.path.dirname(file_path)}/ota.json https://nextcloud.cakestwix.com/public.php/dav/files/4TZfePNyzm7Bpw9")
     while not os.path.exists(file_path):
         print("it is not there yet")
         asyncio.sleep(1)
@@ -181,7 +188,8 @@ async def send_update_message(context: CallbackContext):
                 update_date_cache = data["response"][0]["datetime"]
                 version = data["response"][0]["version"]
         if update_date != update_date_cache:
-            await context.bot.send_message(chat_id=os.environ['SEALBOT_UPDATE_CHATID'], text=f"New LOS {version} update is available!\n\nKeep in mind: this bot only tracks dreamlte!")
+            await context.bot.send_message(chat_id=chat_id, text=f"New LOS {version} update is available!\n\nKeep in mind: this bot only tracks dream2lte!"
+                                            )
 
 
 # powered by reddit and meme-api :)
@@ -237,6 +245,13 @@ async def rseal(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     if str(user_id) in sealbot_admins:
         await post_of_the_week(context, chat_id=update.effective_chat.id)
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="only available for seally admins - for now.")
+
+async def update_command(update: Update, context: CallbackContext):
+    user_id = update.message.from_user.id
+    if str(user_id) in sealbot_admins:
+        await send_update_message(context, chat_id=update.effective_chat.id)
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="only available for seally admins - for now.")
 
@@ -306,7 +321,7 @@ async def add(update: Update, context: CallbackContext):
                 type_of_file = "video"
             
             else:
-                await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong input. \nusage: react to a picture/animation/gif with /add filename (don't forget the file extension type!)"
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Wrong input. \nusage: react to a picture/animation/gif/video with /add filename (don't forget the file extension type!)"
                                             , reply_to_message_id=update.message.message_id)
                 return
 
@@ -360,6 +375,9 @@ if __name__ == '__main__':
 
     remove_handler = CommandHandler("remove", remove)
     application.add_handler(remove_handler)
+
+    #update_command = CommandHandler("update", update_command)  # manual trigger for testing
+    #application.add_handler(update_command)
 
     rseal_handler = CommandHandler("rseal", rseal)
     application.add_handler(rseal_handler)
