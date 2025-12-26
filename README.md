@@ -1,5 +1,5 @@
 # public_sealbot
-iykyk
+bot that sends random pictures of seals and way more!
 
 ## Run
 <details>
