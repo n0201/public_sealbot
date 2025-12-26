@@ -5,7 +5,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Callb
 import random
 import sys
 from datetime import time as dtime
-import asyncio
+import time
 import json
 from pathlib import Path
 import requests
@@ -180,7 +180,7 @@ async def send_update_message(context: CallbackContext, chat_id=os.environ['SEAL
     os.system(f"curl -L --insecure -o {os.path.dirname(file_path)}/ota.json https://nextcloud.cakestwix.com/public.php/dav/files/4TZfePNyzm7Bpw9")
     while not os.path.exists(file_path):
         print("it is not there yet")
-        asyncio.sleep(1)
+        time.sleep(1)
     else:
         if os.path.exists(file_path):
             with open(file_path) as f:
